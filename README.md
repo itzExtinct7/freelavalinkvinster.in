@@ -1,22 +1,13 @@
 # Vinster Lavalink Status — Vercel
 
-A static Lavalink v4 statistics dashboard with a Vercel serverless API function.
-
-## Files
-- `index.html`, `style.css`, `app.js`, `config.js`: dashboard frontend
-- `api/stats.js`: fixed-upstream serverless proxy for `/v4/stats`
-- `vercel.json`: Vercel function configuration
-
 ## Deploy
-1. Upload all files and the `api` folder to the root of your GitHub repository.
-2. Import that repository at https://vercel.com/new.
-3. Framework preset: **Other**.
-4. Root directory: repository root.
-5. Leave build and install commands empty. Deploy.
-6. Open `https://YOUR-VERCEL-DOMAIN/api/stats` to test the API.
-7. Open the Vercel domain homepage to view the dashboard.
+Upload the contents of this folder to the root of your GitHub repository, preserving the `api/` folder. Import the repository into Vercel using the **Other** framework preset, with no build command.
 
-The dashboard polls `/api/stats` every five seconds. It displays standard Lavalink v4 stats fields when provided: `players`, `playingPlayers`, `uptime`, `memory`, `cpu`, and `frameStats`.
+## API
+`api/stats.js` fetches the fixed upstream URL `https://freelavalinkvinster.in/v4/stats`. Configure `LAVALINK_PASSWORD` in Vercel Project Settings → Environment Variables if the provider requires Lavalink REST authentication. Redeploy after changing environment variables.
 
-## Important
-This function requests only `https://freelavalinkvinster.in/v4/stats`; it is not an open proxy. It does not bypass provider authentication, IP allowlists, firewall rules, or other access restrictions. If `/api/stats` returns 401/403/502, the upstream provider or network path needs to be checked. The dashboard should be deployed on Vercel; GitHub Pages cannot execute this serverless function.
+## Dashboard
+The dashboard polls `/api/stats` every 5 seconds. It displays connected players, playing players, uptime, Lavalink CPU load, and frame statistics. It includes a rolling five-minute chart of playing players and Lavalink CPU load. Chart history is held in browser memory and resets when the page session ends.
+
+## Limitations
+The API function cannot bypass provider authentication, IP allowlists, or other upstream restrictions. If it returns 401/403, confirm the correct REST API password and whether the provider allows requests from Vercel.
