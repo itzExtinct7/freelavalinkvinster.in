@@ -1,13 +1,29 @@
 # Vinster Lavalink Status — Vercel
 
+## Project contents
+- `index.html`, `style.css`, `app.js`, `config.js`: dashboard frontend
+- `api/stats.js`: authenticated Vercel serverless function
+- `vercel.json`: Vercel configuration
+
+## Required Vercel environment variable
+In Vercel → Project → Settings → Environment Variables, configure:
+- Name: `LAVALINK_PASSWORD`
+- Value: the Lavalink REST API password supplied by your provider
+- Environment: Production (and Preview/Development if needed)
+
+Do not put the password in GitHub or frontend files. Redeploy after changing environment variables or API code.
+
 ## Deploy
-Upload the contents of this folder to the root of your GitHub repository, preserving the `api/` folder. Import the repository into Vercel using the **Other** framework preset, with no build command.
+Upload/replace the contents of this project at the root of the GitHub repository, preserving the `api/` directory. Vercel should deploy automatically from the connected GitHub branch.
 
-## API
-`api/stats.js` fetches the fixed upstream URL `https://freelavalinkvinster.in/v4/stats`. Configure `LAVALINK_PASSWORD` in Vercel Project Settings → Environment Variables if the provider requires Lavalink REST authentication. Redeploy after changing environment variables.
+## Test
+Open `https://YOUR-VERCEL-DOMAIN/api/stats`. A successful response is HTTP 200 with Lavalink v4 statistics JSON.
 
-## Dashboard
-The dashboard polls `/api/stats` every 5 seconds. It displays connected players, playing players, uptime, Lavalink CPU load, and frame statistics. It includes a rolling five-minute chart of playing players and Lavalink CPU load. Chart history is held in browser memory and resets when the page session ends.
+- HTTP 500: `LAVALINK_PASSWORD` is missing from the deployment environment.
+- HTTP 401: the supplied password is not accepted, or the provider uses a different authentication method.
+- HTTP 403: provider access policy is denying the request.
+- HTTP 502: upstream connectivity or response-format problem.
 
-## Limitations
-The API function cannot bypass provider authentication, IP allowlists, or other upstream restrictions. If it returns 401/403, confirm the correct REST API password and whether the provider allows requests from Vercel.
+The dashboard polls every five seconds. Its five-minute player/CPU history is collected in browser memory and resets when the page session ends.
+
+This proxy only requests the fixed stats endpoint. It does not bypass provider authentication, IP allowlists, or network restrictions.

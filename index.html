@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090d18">
+  <title>Vinster Lavalink — Live Status</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="glow glow-a"></div><div class="glow glow-b"></div>
+  <main class="wrap">
+    <header class="nav">
+      <a class="brand" href="#"><span class="mark">V</span> VINSTER <span class="muted">/ LAVALINK</span></a>
+      <div class="nav-right"><span class="live-dot"></span><span>LIVE MONITOR</span><button id="refresh" aria-label="Refresh now" title="Refresh now">↻</button></div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow"><i></i> INFRASTRUCTURE OVERVIEW</div>
+      <h1>Your audio.<br><span>Always in motion.</span></h1>
+      <p>Real-time statistics from the Vinster Lavalink node.</p>
+    </section>
+
+    <section class="banner">
+      <div class="state"><span id="stateDot" class="state-dot pending"></span><div><strong id="stateTitle">Connecting to node</strong><small id="stateMessage">Fetching live statistics…</small></div></div>
+      <div class="timestamp"><small>LAST UPDATED</small><strong id="updated">—</strong></div>
+    </section>
+
+    <section class="grid primary">
+      <article class="card"><label>CONNECTED PLAYERS</label><strong id="players">—</strong><small>Active voice sessions</small></article>
+      <article class="card"><label>PLAYING PLAYERS</label><strong id="playing">—</strong><small>Currently playing audio</small></article>
+      <article class="card"><label>NODE UPTIME</label><strong id="uptime">—</strong><small>Time since last start</small></article>
+    </section>
+
+    <div class="section-title"><div><div class="eyebrow">RESOURCE MONITORING</div><h2>Node performance</h2></div><span class="refresh-tag"><i></i> REFRESH · 5 SEC</span></div>
+    <section class="grid cpu-grid">
+      <article class="card resource"><div class="card-head"><label>LAVALINK CPU LOAD</label><span id="cpuPercent">—</span></div><strong id="cpuLoad">—</strong><div class="meter"><span id="cpuBar"></span></div><small id="cpuDetail">Waiting for CPU data</small></article>
+    </section>
+
+    <section class="section-title lower"><div><div class="eyebrow">HISTORY · LAST 5 MINUTES</div><h2>Performance history</h2></div></section>
+    <section class="card history-card">
+      <div class="history-legend">
+        <span><i class="legend-players"></i> Playing players</span>
+        <span><i class="legend-cpu"></i> Lavalink CPU load</span>
+      </div>
+      <div class="chart-wrap">
+        <svg id="historyChart" viewBox="0 0 720 220" role="img" aria-label="Historical playing player count and Lavalink CPU load chart">
+          <g class="chart-grid">
+            <line x1="48" y1="25" x2="700" y2="25"></line>
+            <line x1="48" y1="75" x2="700" y2="75"></line>
+            <line x1="48" y1="125" x2="700" y2="125"></line>
+            <line x1="48" y1="175" x2="700" y2="175"></line>
+          </g>
+          <text x="8" y="29">100</text><text x="15" y="79">75</text><text x="15" y="129">50</text><text x="15" y="179">25</text>
+          <path id="playersArea" class="players-area" d=""></path>
+          <path id="playersLine" class="players-line" d=""></path>
+          <path id="cpuLine" class="cpu-line" d=""></path>
+          <text x="48" y="207">5 min ago</text><text x="365" y="207" text-anchor="middle">2.5 min</text><text x="700" y="207" text-anchor="end">Now</text>
+        </svg>
+      </div>
+      <div class="history-note" id="historyNote">History starts collecting when this dashboard is open. Values are held in this browser session.</div>
+    </section>
+
+    <section class="section-title lower"><div><div class="eyebrow">AUDIO ENGINE</div><h2>Frame statistics</h2></div></section>
+    <section class="grid frames">
+      <article class="card"><label>FRAMES SENT</label><strong id="sent">—</strong></article>
+      <article class="card"><label>FRAMES NULLED</label><strong id="nulled">—</strong></article>
+      <article class="card"><label>FRAME DEFICIT</label><strong id="deficit">—</strong></article>
+    </section>
+
+    <section class="footer-panel"><div><label>DATA SOURCE</label><code>/api/stats</code></div><div id="apiState">Checking API</div></section>
+    <footer><span>© <span id="year"></span> VINSTER LAVALINK</span><span>LIVE NODE DASHBOARD · REAL API DATA</span></footer>
+  </main>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
