@@ -1,44 +1,60 @@
-// Vercel Function: GET /api/stats
-// Fixed upstream endpoint; this is not an arbitrary URL proxy.
-module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store, max-age=0");
+module.exports = async (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
 
   if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({
+      error: "Method not allowed"
+    });
+  }
+
+  const password = process.env.LAVALINK_PASSWORD;
+
+  if (!password) {
+    return res.status(500).json({
+      error: "LAVALINK_PASSWORD is missing"
+    });
   }
 
   try {
-    const upstream = await fetch("https://freelavalinkvinster.in/v4/stats", {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      signal: AbortSignal.timeout(10000)
-    });
+    const response = await fetch(
+      "https://freelavalinkvinster.in/v4/stats",
+      {
+        method: "GET",
+        headers: {
+          Authorization: password,
+          Accept: "application/json"
+        },
+        signal: AbortSignal.timeout(10000),
+        cache: "no-store"
+      }
+    );
 
-    const body = await upstream.text();
-    let data;
-    try {
-      data = JSON.parse(body);
-    } catch {
-      return res.status(502).json({
-        error: "The upstream endpoint did not return valid JSON",
-        upstreamStatus: upstream.status
+    const text = await response.text();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: "Upstream request failed",
+        upstreamStatus: response.status
       });
     }
 
-    if (!upstream.ok) {
-      return res.status(upstream.status).json({
-        error: "The upstream stats endpoint returned an error",
-        upstreamStatus: upstream.status,
-        details: data
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return res.status(502).json({
+        error: "Invalid JSON received from upstream"
       });
     }
 
     return res.status(200).json(data);
+
   } catch (error) {
-    console.error("Upstream stats request failed:", error);
+    console.error(error.message);
+
     return res.status(502).json({
-      error: "Could not reach the Lavalink stats endpoint"
+      error: "Unable to connect to Lavalink"
     });
   }
 };
