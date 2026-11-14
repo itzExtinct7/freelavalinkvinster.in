@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080b12">
+  <meta name="description" content="Live infrastructure and performance monitoring for the Vinster Lavalink audio node.">
+  <title>Vinster Lavalink — Node Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+  <div class="noise"></div>
+
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Vinster Lavalink home">
+        <span class="brand-symbol">V<span>.</span></span>
+        <span class="brand-name">VINSTER<span class="brand-slash"> / </span><span class="brand-sub">LAVALINK</span></span>
+      </a>
+      <div class="topbar-actions">
+        <span class="monitor-label"><span class="pulse"></span> LIVE MONITOR</span>
+        <button id="refresh" class="refresh-button" aria-label="Refresh now" title="Refresh now">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4.8 9a7.5 7.5 0 0 1 12.7-2L20 12M4 17v-5h5m10.2 3a7.5 7.5 0 0 1-12.7 2L4 12"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow"><span class="eyebrow-line"></span> AUDIO INFRASTRUCTURE <span class="eyebrow-index">01 / OVERVIEW</span></div>
+      <div class="hero-layout">
+        <div>
+          <h1>Sound that<br><span>never stands still.</span></h1>
+          <p class="hero-copy">A live look inside the Vinster Lavalink node.<br>Performance, sessions and engine health — in real time.</p>
+        </div>
+        <div class="hero-orbit" aria-hidden="true">
+          <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+          <div class="orbit-core"><span>V</span><i></i></div>
+          <span class="orbit-caption">NODE<br>ONLINE</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="status-panel" aria-live="polite">
+      <div class="status-main">
+        <span id="stateDot" class="state-dot pending"></span>
+        <div><div class="status-kicker">NODE STATUS</div><strong id="stateTitle">Connecting to node</strong><small id="stateMessage">Fetching live statistics…</small></div>
+      </div>
+      <div class="status-divider"></div>
+      <div class="updated-block"><span class="meta-label">LAST UPDATED</span><strong id="updated">—</strong></div>
+      <div class="status-corner">V / 01</div>
+    </section>
+
+    <section class="stats-grid" aria-label="Player statistics">
+      <article class="metric-card metric-featured">
+        <div class="metric-top"><span class="meta-label">CONNECTED PLAYERS</span><span class="metric-icon">↗</span></div>
+        <strong id="players" class="metric-value">—</strong>
+        <div class="metric-bottom"><span class="metric-bullet"></span> Active voice sessions</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-top"><span class="meta-label">PLAYING PLAYERS</span><span class="metric-icon">♫</span></div>
+        <strong id="playing" class="metric-value">—</strong>
+        <div class="metric-bottom">Currently playing audio</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-top"><span class="meta-label">NODE UPTIME</span><span class="metric-icon">◷</span></div>
+        <strong id="uptime" class="metric-value uptime-value">—</strong>
+        <div class="metric-bottom">Time since last start</div>
+      </article>
+    </section>
+
+    <section class="section-heading">
+      <div><div class="eyebrow"><span class="eyebrow-line"></span> SYSTEM TELEMETRY <span class="eyebrow-index">02 / RESOURCES</span></div><h2>Node performance</h2></div>
+      <span class="refresh-tag"><span class="pulse"></span> AUTO-REFRESH <b>5 SEC</b></span>
+    </section>
+
+    <section class="resource-grid">
+      <article class="resource-card">
+        <div class="resource-heading"><div><span class="meta-label">LAVALINK CPU LOAD</span><p>Processor utilization</p></div><span id="cpuPercent" class="cpu-percent">—</span></div>
+        <strong id="cpuLoad" class="cpu-value">—</strong>
+        <div class="meter"><span id="cpuBar"></span></div>
+        <div class="resource-foot"><span id="cpuDetail">Waiting for CPU data</span><span class="meter-caption">LOAD</span></div>
+      </article>
+      <div class="telemetry-aside">
+        <span class="aside-mark">V.</span>
+        <p>Built for uninterrupted audio.</p>
+        <span class="aside-line"></span>
+        <small>VINSTER<br>NODE MONITOR</small>
+      </div>
+    </section>
+
+    <section class="section-heading history-heading">
+      <div><div class="eyebrow"><span class="eyebrow-line"></span> LIVE TELEMETRY <span class="eyebrow-index">03 / HISTORY</span></div><h2>Performance history</h2></div>
+      <span class="history-period">LAST 5 MINUTES</span>
+    </section>
+    <section class="history-card">
+      <div class="history-top">
+        <div class="history-legend"><span><i class="legend-players"></i> Playing players</span><span><i class="legend-cpu"></i> CPU load</span></div>
+        <span class="history-live"><span class="pulse"></span> STREAMING</span>
+      </div>
+      <div class="chart-wrap">
+        <svg id="historyChart" viewBox="0 0 720 220" role="img" aria-label="Historical playing player count and Lavalink CPU load chart">
+          <g class="chart-grid"><line x1="48" y1="25" x2="700" y2="25"></line><line x1="48" y1="75" x2="700" y2="75"></line><line x1="48" y1="125" x2="700" y2="125"></line><line x1="48" y1="175" x2="700" y2="175"></line></g>
+          <text x="8" y="29">100</text><text x="15" y="79">75</text><text x="15" y="129">50</text><text x="15" y="179">25</text>
+          <path id="playersArea" class="players-area" d=""></path><path id="playersLine" class="players-line" d=""></path><path id="cpuLine" class="cpu-line" d=""></path>
+          <text x="48" y="207">5 MIN AGO</text><text x="365" y="207" text-anchor="middle">2.5 MIN</text><text x="700" y="207" text-anchor="end">NOW</text>
+        </svg>
+      </div>
+      <div class="history-note" id="historyNote">History starts collecting when this dashboard is open. Values are held in this browser session.</div>
+    </section>
+
+    <section class="section-heading frame-heading">
+      <div><div class="eyebrow"><span class="eyebrow-line"></span> AUDIO ENGINE <span class="eyebrow-index">04 / FRAMES</span></div><h2>Frame statistics</h2></div>
+    </section>
+    <section class="frames-grid">
+      <article class="frame-card"><span class="meta-label">FRAMES SENT</span><strong id="sent">—</strong><span class="frame-symbol">↑</span></article>
+      <article class="frame-card"><span class="meta-label">FRAMES NULLED</span><strong id="nulled">—</strong><span class="frame-symbol">∅</span></article>
+      <article class="frame-card"><span class="meta-label">FRAME DEFICIT</span><strong id="deficit">—</strong><span class="frame-symbol">−</span></article>
+    </section>
+
+    <section class="api-strip"><div><span class="api-led"></span><div><span class="meta-label">DATA SOURCE</span><code>/api/stats</code></div></div><strong id="apiState">Checking API</strong></section>
+    <footer><span>© <span id="year"></span> VINSTER LAVALINK</span><span>ENGINEERED FOR THE FLOW <b>✳</b></span></footer>
+  </main>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
