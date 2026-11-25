@@ -24,6 +24,8 @@ Open `https://YOUR-VERCEL-DOMAIN/api/stats`. A successful response is HTTP 200 w
 - HTTP 403: provider access policy is denying the request.
 - HTTP 502: upstream connectivity or response-format problem.
 
-The dashboard polls every five seconds. Its five-minute player/CPU history is collected in browser memory and resets when the page session ends.
+The dashboard polls every five seconds (see `config.js`). Its 15-minute player/CPU history is kept in the browser tab (`sessionStorage`) and is cleared when the tab closes.
+
+`/api/stats` returns only the public statistics fields and is cached at Vercel's edge for about 4 seconds, so many open dashboards cause only a few requests to the node. Optionally set `LAVALINK_STATS_URL` to point the proxy at a different Lavalink `/v4/stats` URL.
 
 This proxy only requests the fixed stats endpoint. It does not bypass provider authentication, IP allowlists, or network restrictions.
