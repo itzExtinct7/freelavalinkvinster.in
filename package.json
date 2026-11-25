@@ -1,0 +1,18 @@
+{
+  "name": "freelavalinkvinster.in",
+  "version": "1.0.0",
+  "description": "Live infrastructure and performance monitoring for the Vinster Lavalink audio node",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itzExtinct7/freelavalinkvinster.in.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
