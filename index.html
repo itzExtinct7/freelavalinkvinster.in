@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" data-state="init">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080b12">
+  <meta name="description" content="Live infrastructure and performance monitoring for the Vinster Lavalink audio node.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Vinster Lavalink — Live Node Status">
+  <meta property="og:description" content="Live status, load and audio-frame health of the free Vinster Lavalink node.">
+  <meta name="twitter:card" content="summary">
+  <title>Vinster Lavalink — Node Control</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c4f36b'/%3E%3Cpath d='M5 16h4l3-8 4 16 3-12 2 4h6' fill='none' stroke='%2310170b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+<div class="wrap">
+ <header class="top">
+  <a class="brand" href="/" aria-label="Vinster Lavalink home"><span class="brand-symbol">V<span>.</span></span><span>Vinster <span class="brand-sub">Lavalink</span></span></a>
+  <div class="actions"><a class="refresh nav-link" href="/player">Listen</a><button class="refresh" id="refresh" type="button">Refresh</button><span class="pill"><i></i><span id="pillText">Checking</span></span></div>
+ </header>
+
+ <main id="main">
+  <section class="hero">
+   <h1 id="headline" aria-live="polite">Checking the node…</h1>
+   <p class="sub" id="sub">Fetching live statistics.</p>
+   <canvas id="wave" role="img" aria-label="Chart of playing players and Lavalink CPU over the last 15 minutes"></canvas>
+   <p class="legend"><span><b></b>Playing players</span><span><b class="l"></b>Lavalink CPU</span><span id="span">Last 15 minutes, saved in this tab only</span></p>
+  </section>
+
+  <dl class="vitals">
+   <div><dt>Connected players</dt><dd id="players">—</dd></div>
+   <div><dt>Playing now</dt><dd id="playing">—</dd></div>
+   <div><dt>Node uptime</dt><dd id="uptime">—</dd></div>
+   <div><dt>Response time</dt><dd id="ping">—</dd></div>
+  </dl>
+
+  <section class="block" aria-labelledby="actTitle">
+   <h2 id="actTitle">Recent activity</h2>
+   <p class="lede">Listening over the last 24 hours, plus what changed lately. Saved in this browser while the page is open.</p>
+   <dl class="frames four">
+    <div><dt>Idle players</dt><dd id="idle">—</dd><p>Connected but not playing.</p></div>
+    <div><dt>Peak playing</dt><dd id="peak">—</dd><p>Highest in 24 hours.</p></div>
+    <div><dt>Average playing</dt><dd id="avg">—</dd><p>Mean over 24 hours.</p></div>
+    <div><dt>Last busy</dt><dd id="busy">—</dd><p>When anyone was last listening.</p></div>
+   </dl>
+   <ul class="events" id="events" aria-live="polite"></ul>
+  </section>
+
+  <section class="block">
+   <div class="cols">
+    <div>
+     <h2>Processor</h2>
+     <p class="lede">How hard the node and its host machine are working. Sustained load above 85% can cause stuttering.</p>
+     <div class="meter"><div class="row"><span>Lavalink process</span><span id="lavTxt">—</span></div><div class="track"><div class="fill v" id="lavBar"></div></div></div>
+     <div class="meter"><div class="row"><span>Whole machine</span><span id="sysTxt">—</span></div><div class="track"><div class="fill" id="sysBar"></div></div><p class="note" id="cores"></p></div>
+    </div>
+    <div>
+     <h2>Memory</h2>
+     <p class="lede">Heap memory currently in use by Lavalink.</p>
+     <div class="meter"><div class="row"><span>Heap in use</span><span id="memTxt">—</span></div><div class="track"><div class="fill" id="memBar"></div></div><p class="note" id="memNote"></p></div>
+    </div>
+   </div>
+  </section>
+
+  <section class="block">
+   <h2>Audio frames</h2>
+   <p class="lede">Averages for the last minute. Discord expects a steady stream of frames, so missing ones are what listeners hear as stutter.</p>
+   <dl class="frames">
+    <div><dt>Sent</dt><dd id="sent">—</dd><p>Frames delivered to Discord.</p></div>
+    <div><dt>Nulled</dt><dd id="nulled">—</dd><p>Frames replaced with silence.</p></div>
+    <div><dt>Deficit</dt><dd id="deficit">—</dd><p>Frames short of what Discord expected.</p></div>
+   </dl>
+   <p class="verdict" id="verdict">Waiting for frame data.</p>
+  </section>
+  <section class="block" id="nodeBlock" hidden>
+   <h2>Node details</h2>
+   <p class="lede">What this node is running and which music sources it can load.</p>
+   <dl class="frames">
+    <div><dt>Lavalink version</dt><dd id="nVer">—</dd><p id="nJvm"></p></div>
+    <div><dt>Sources</dt><dd id="nSrcCount">—</dd><p id="nSrc"></p></div>
+    <div><dt>Plugins</dt><dd id="nPlugCount">—</dd><p id="nPlug"></p></div>
+   </dl>
+   <p class="note" id="nRoute"></p>
+  </section>
+ </main>
+
+ <footer>
+  <span>Sound that never stands still. Vinster Lavalink.</span>
+  <span>Data from <code>/api/stats</code>, refreshed every 5 seconds while this page is open.</span>
+ </footer>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
