@@ -1,62 +1,63 @@
-// Vercel Function: GET /api/stats
-// Proxies Lavalink v4 /stats using the password stored in Vercel Environment Variables.
-// Only the public statistics fields are returned, and successful responses are cached at the
-// edge for a few seconds so many open dashboards cause only a handful of requests to the node.
-const UPSTREAM = process.env.LAVALINK_STATS_URL || "https://freelavalinkvinster.in/v4/stats";
+// GET /api/stats — public Lavalink v4 statistics plus node info (version, sources, plugins).
+// The password never leaves this function. Successful responses are edge-cached for a few
+// seconds so many open dashboards cause only a handful of requests to the node.
+const REST = (process.env.LAVALINK_REST_URL || "https://freelavalinkvinster.in").replace(/\/+$/, "");
+const STATS_URL = process.env.LAVALINK_STATS_URL || `${REST}/v4/stats`; // legacy override still honoured
+
+async function getJson(url, ms) {
+  const r = await fetch(url, {
+    headers: { Authorization: process.env.LAVALINK_PASSWORD, Accept: "application/json" },
+    cache: "no-store",
+    signal: AbortSignal.timeout(ms)
+  });
+  if (!r.ok) {
+    const err = new Error(`HTTP ${r.status}`);
+    err.status = r.status;
+    throw err;
+  }
+  return r.json();
+}
 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store, max-age=0");
-
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     return res.status(405).json({ error: "Method not allowed" });
   }
-
-  const password = process.env.LAVALINK_PASSWORD;
-  if (!password) {
+  if (!process.env.LAVALINK_PASSWORD) {
     return res.status(500).json({ error: "LAVALINK_PASSWORD environment variable is missing" });
   }
 
   try {
-    const upstream = await fetch(UPSTREAM, {
-      method: "GET",
-      headers: { Authorization: password, Accept: "application/json" },
-      cache: "no-store",
-      signal: AbortSignal.timeout(6000)
-    });
-
-    if (!upstream.ok) {
-      console.error("Lavalink upstream returned HTTP", upstream.status);
-      return res.status(upstream.status).json({
-        error: "Lavalink upstream rejected the request",
-        upstreamStatus: upstream.status
-      });
-    }
-
-    let data;
-    try {
-      data = JSON.parse(await upstream.text());
-    } catch {
-      console.error("Lavalink upstream returned non-JSON content");
-      return res.status(502).json({
-        error: "Upstream returned non-JSON content",
-        upstreamStatus: upstream.status,
-        contentType: upstream.headers.get("content-type") || "unknown"
-      });
-    }
+    const [stats, info] = await Promise.all([
+      getJson(STATS_URL, 6000),
+      getJson(`${REST}/v4/info`, 6000).catch(() => null) // node info is optional
+    ]);
 
     res.setHeader("Cache-Control", "public, max-age=0, s-maxage=4, stale-while-revalidate=10");
     return res.status(200).json({
-      players: data.players,
-      playingPlayers: data.playingPlayers,
-      uptime: data.uptime,
-      memory: data.memory,
-      cpu: data.cpu,
-      frameStats: data.frameStats ?? null
+      players: stats.players,
+      playingPlayers: stats.playingPlayers,
+      uptime: stats.uptime,
+      memory: stats.memory,
+      cpu: stats.cpu,
+      frameStats: stats.frameStats ?? null,
+      node: info ? {
+        version: (info.version && info.version.semver) || null,
+        jvm: info.jvm || null,
+        lavaplayer: info.lavaplayer || null,
+        sources: Array.isArray(info.sourceManagers) ? info.sourceManagers.map(String) : [],
+        plugins: Array.isArray(info.plugins) ? info.plugins.map((p) => ({ name: String(p.name), version: String(p.version) })) : []
+      } : null
     });
   } catch (error) {
     console.error("Lavalink stats request failed:", error.message);
+    if (error.status) {
+      return res.status(error.status === 401 ? 502 : error.status).json({
+        error: "Lavalink upstream rejected the request",
+        upstreamStatus: error.status
+      });
+    }
     return res.status(502).json({ error: "Could not reach the Lavalink upstream endpoint" });
   }
 };
-
