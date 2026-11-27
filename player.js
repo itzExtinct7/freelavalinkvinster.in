@@ -6,8 +6,6 @@
   const searchButton = $('searchButton');
   const status = $('searchStatus');
   const results = $('results');
-  const playerFrame = $('playerFrame');
-  const audio = $('directAudio');
 
   const formatDuration = (ms, isStream) => {
     if (isStream) return 'LIVE';
@@ -40,112 +38,6 @@
     return el;
   };
 
-  function getProviderEmbed(track) {
-    const uri = safeHttpUrl(track.uri);
-    if (!uri) return null;
-    const host = uri.hostname.toLowerCase();
-    const path = uri.pathname;
-
-    if (host === 'youtu.be' || host.endsWith('youtube.com') || host.endsWith('youtube-nocookie.com')) {
-      const id = host === 'youtu.be' ? path.split('/').filter(Boolean)[0] :
-        (uri.searchParams.get('v') || path.match(/\/(?:shorts|embed|live)\/([^/?]+)/)?.[1]);
-      if (id && /^[\w-]{6,}$/.test(id)) {
-        return { kind: 'youtube', url: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1&playsinline=1&rel=0` };
-      }
-    }
-
-    if (host === 'soundcloud.com' || host.endsWith('.soundcloud.com')) {
-      const src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(uri.href)}&auto_play=true&hide_related=true&show_comments=false&visual=true`;
-      return { kind: 'soundcloud', url: src };
-    }
-
-    if (host === 'open.spotify.com' || host === 'play.spotify.com') {
-      const match = path.match(/\/(track|album|playlist|episode|show)\/([A-Za-z0-9]+)/);
-      if (match) return { kind: 'spotify', url: `https://open.spotify.com/embed/${match[1]}/${match[2]}?utm_source=generator` };
-    }
-
-    if (host === 'music.apple.com') {
-      return { kind: 'apple', url: `https://embed.music.apple.com${path}${uri.search}` };
-    }
-
-    if (host === 'deezer.com' || host.endsWith('.deezer.com')) {
-      const match = path.match(/\/(track|album|playlist)\/(\d+)/);
-      if (match) return { kind: 'deezer', url: `https://widget.deezer.com/widget/dark/${match[1]}/${match[2]}` };
-    }
-
-    if (host === 'music.yandex.com' || host === 'music.yandex.ru') {
-      const match = path.match(/\/album\/(\d+)\/track\/(\d+)/);
-      if (match) return { kind: 'yandex', url: `https://music.yandex.com/iframe/#track/${match[2]}/${match[1]}` };
-    }
-
-    // Lavalink plugins may return direct media URLs. Only known audio extensions are
-    // sent to the native audio element; provider page URLs are never assumed to be files.
-    if (/\.(mp3|m4a|aac|ogg|opus|wav|flac)(?:$|\?)/i.test(uri.href)) return { kind: 'audio', url: uri.href };
-    return null;
-  }
-
-  function renderTrack(track) {
-    $('currentTitle').textContent = track.title || 'Untitled track';
-    $('currentAuthor').textContent = track.author || 'Unknown artist';
-    $('currentSource').textContent = track.sourceName || 'Lavalink result';
-    const cover = $('currentCover');
-    cover.replaceChildren();
-    const art = safeHttpUrl(track.artworkUrl);
-    if (art) {
-      const img = document.createElement('img');
-      img.src = art.href;
-      img.alt = '';
-      img.loading = 'lazy';
-      cover.appendChild(img);
-    } else {
-      cover.textContent = '♪';
-    }
-
-    const embed = getProviderEmbed(track);
-    playerFrame.replaceChildren();
-    if (!embed) {
-      const placeholder = addText('div', 'player-placeholder', 'Lavalink found this track, but its source URL does not have a supported browser player. Open the source link below to listen.');
-      if (track.uri && safeHttpUrl(track.uri)) {
-        const link = document.createElement('a');
-        link.href = track.uri;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.textContent = 'Open source';
-        link.style.display = 'block';
-        link.style.marginTop = '10px';
-        placeholder.appendChild(link);
-      }
-      playerFrame.appendChild(placeholder);
-      return;
-    }
-
-    if (embed.kind === 'audio') {
-      audio.pause();
-      audio.src = embed.url;
-      audio.classList.add('active');
-      audio.play().catch(() => { $('directStatus').textContent = 'Press play in the audio controls to start this stream.'; });
-      playerFrame.appendChild(addText('div', 'player-placeholder', 'Direct stream loaded in the audio controls below.'));
-      return;
-    }
-
-    audio.pause();
-    audio.removeAttribute('src');
-    audio.load();
-    audio.classList.remove('active');
-    const iframe = document.createElement('iframe');
-    iframe.src = embed.url;
-    iframe.title = `${track.title || 'Track'} player`;
-    iframe.allow = 'autoplay; encrypted-media; clipboard-write; picture-in-picture; web-share';
-    iframe.allowFullscreen = true;
-    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-    iframe.loading = 'lazy';
-    if (embed.kind === 'soundcloud') iframe.className = 'soundcloud-frame';
-    if (embed.kind === 'spotify') iframe.className = 'spotify-frame';
-    if (embed.kind === 'apple') iframe.className = 'apple-frame';
-    if (embed.kind === 'deezer') iframe.className = 'deezer-frame';
-    playerFrame.appendChild(iframe);
-  }
-
   function renderResults(tracks) {
     results.replaceChildren();
     $('resultCount').textContent = tracks.length ? `${tracks.length} track${tracks.length === 1 ? '' : 's'}` : '';
@@ -173,10 +65,17 @@
       details.appendChild(addText('strong', '', track.title || 'Untitled track'));
       details.appendChild(addText('span', '', track.author || 'Unknown artist'));
       details.appendChild(addText('span', 'track-source', `${track.sourceName || 'source'} · ${formatDuration(track.length, track.isStream)}`));
-      const play = addText('button', 'track-play', 'Listen');
-      play.type = 'button';
-      play.addEventListener('click', () => renderTrack(track));
-      card.append(art, details, play);
+
+      const sourceUrl = safeHttpUrl(track.uri);
+      if (sourceUrl) {
+        const open = addText('a', 'track-play', 'Open source');
+        open.href = sourceUrl.href;
+        open.target = '_blank';
+        open.rel = 'noopener noreferrer';
+        card.append(art, details, open);
+      } else {
+        card.append(art, details, addText('span', 'track-play', 'No source link'));
+      }
       results.appendChild(card);
     });
   }
@@ -206,25 +105,6 @@
       searchButton.disabled = false;
       searchButton.innerHTML = 'Search <span aria-hidden="true">↗</span>';
     }
-  });
-
-  $('directForm').addEventListener('submit', (event) => {
-    event.preventDefault();
-    const url = safeHttpUrl($('directUrl').value.trim());
-    if (!url) {
-      $('directStatus').textContent = 'Enter a valid HTTP or HTTPS audio URL.';
-      return;
-    }
-    audio.src = url.href;
-    audio.classList.add('active');
-    $('directStatus').textContent = 'Attempting browser playback. Whether it works depends on the stream format and server access policy.';
-    audio.play().catch(() => {
-      $('directStatus').textContent = 'The browser could not start this stream automatically. Use the audio controls; the URL must point to audio, not a web page.';
-    });
-  });
-
-  audio.addEventListener('error', () => {
-    $('directStatus').textContent = 'The browser could not play this URL. Check that it is a direct audio stream and uses a browser-supported format.';
   });
 
   try {
