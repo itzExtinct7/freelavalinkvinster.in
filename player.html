@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080b12">
+  <meta name="description" content="Search tracks through the Vinster Lavalink node and listen using supported music-provider players.">
+  <title>Listen — Vinster Lavalink</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="player.css">
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/" aria-label="Vinster Lavalink status home"><span class="brand-symbol">V<span>.</span></span><span>Vinster <span class="brand-sub">Lavalink</span></span></a>
+    <div class="actions"><a class="refresh nav-link" href="/">Node status</a><span class="pill player-pill"><i></i><span>Music player</span></span></div>
+  </header>
+
+  <main class="player-main">
+    <section class="player-hero">
+      <p class="eyebrow">VINSTER AUDIO</p>
+      <h1>Find your<br><span>next track.</span></h1>
+      <p class="sub">Search through your Lavalink node, then listen using the matching provider's browser player where available.</p>
+    </section>
+
+    <section class="search-panel" aria-labelledby="searchTitle">
+      <h2 id="searchTitle">Search music</h2>
+      <form id="searchForm" class="search-form">
+        <label class="sr-only" for="source">Music source</label>
+        <select id="source" name="source">
+          <option value="auto">Auto / YouTube</option>
+          <option value="youtube">YouTube</option>
+          <option value="youtubeMusic">YouTube Music</option>
+          <option value="soundcloud">SoundCloud</option>
+          <option value="spotify">Spotify plugin</option>
+          <option value="appleMusic">Apple Music plugin</option>
+          <option value="deezer">Deezer plugin</option>
+          <option value="yandexMusic">Yandex Music plugin</option>
+        </select>
+        <label class="sr-only" for="query">Song name, artist, or URL</label>
+        <input id="query" name="q" type="search" maxlength="500" placeholder="Search a song, artist, or paste a track URL…" autocomplete="off" required>
+        <button class="search-button" id="searchButton" type="submit">Search <span aria-hidden="true">↗</span></button>
+      </form>
+      <p class="search-help">Plugin searches require their source-specific prefix to be configured in Vercel. Full track URLs can be resolved directly by Lavalink.</p>
+      <p id="searchStatus" class="search-status" role="status" aria-live="polite">Ready to search the node.</p>
+    </section>
+
+    <section class="results-section" aria-labelledby="resultsTitle">
+      <div class="section-heading"><div><p class="eyebrow">NODE RESULTS</p><h2 id="resultsTitle">Search results</h2></div><span id="resultCount" class="result-count"></span></div>
+      <div id="results" class="results-grid"><div class="empty-state">Search for a track to see results from Lavalink.</div></div>
+    </section>
+
+    <section class="listen-section" aria-labelledby="listenTitle">
+      <div class="section-heading"><div><p class="eyebrow">NOW LISTENING</p><h2 id="listenTitle">Browser player</h2></div></div>
+      <div class="listen-card">
+        <div class="now-playing">
+          <div class="cover-placeholder" id="currentCover" aria-hidden="true">♪</div>
+          <div class="track-meta"><strong id="currentTitle">Nothing playing</strong><span id="currentAuthor">Choose a result above.</span><span id="currentSource" class="source-tag">Waiting</span></div>
+        </div>
+        <div id="playerFrame" class="player-frame"><div class="player-placeholder">Your selected track's supported browser player will appear here.</div></div>
+        <p id="playbackNote" class="playback-note">The node resolves tracks and returns metadata. Audio in this page is played by a supported provider embed or a direct browser-compatible stream; Lavalink's encoded Discord track payload is not a browser audio stream.</p>
+      </div>
+    </section>
+
+    <section class="direct-section" aria-labelledby="directTitle">
+      <h2 id="directTitle">Play a direct audio stream</h2>
+      <p class="lede">Paste a direct MP3, M4A, OGG, WAV, or compatible audio stream URL. This uses the browser's audio element, not Lavalink.</p>
+      <form id="directForm" class="direct-form">
+        <label class="sr-only" for="directUrl">Direct audio URL</label>
+        <input id="directUrl" type="url" placeholder="https://example.com/audio.mp3" required>
+        <button class="search-button" type="submit">Play stream</button>
+      </form>
+      <audio id="directAudio" class="direct-audio" controls preload="none"></audio>
+      <p id="directStatus" class="search-status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer>
+    <span>Sound that never stands still. Vinster Lavalink.</span>
+    <span>Track search is proxied through <code>/api/search</code>.</span>
+  </footer>
+</div>
+<script src="player.js"></script>
+</body>
+</html>
