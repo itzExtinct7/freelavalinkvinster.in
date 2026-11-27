@@ -4,6 +4,18 @@ const DEFAULT_REST_URL = "https://freelavalinkvinster.in";
 const MAX_QUERY_LENGTH = 500;
 const MAX_RESULTS = 15;
 
+// Best-effort per-instance rate limit (serverless instances do not share memory).
+const hits = new Map();
+function limited(req) {
+  const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
+  const now = Date.now();
+  const recent = (hits.get(ip) || []).filter((t) => now - t < 60000);
+  recent.push(now);
+  hits.set(ip, recent);
+  if (hits.size > 500) for (const [k, v] of hits) if (now - v[v.length - 1] > 60000) hits.delete(k);
+  return recent.length > 20;
+}
+
 const SOURCE_PREFIX_ENV = {
   youtube: "ytsearch:",
   youtubeMusic: "ytmsearch:",
@@ -62,6 +74,11 @@ module.exports = async function handler(req, res) {
     return jsonError(res, 405, "Method not allowed");
   }
 
+  if (limited(req)) {
+    res.setHeader("Retry-After", "30");
+    return jsonError(res, 429, "Too many searches. Wait a few seconds and try again.");
+  }
+
   const password = process.env.LAVALINK_PASSWORD;
   if (!password) return jsonError(res, 500, "LAVALINK_PASSWORD is missing from Vercel environment variables.");
 
@@ -114,6 +131,7 @@ module.exports = async function handler(req, res) {
     else if (result.loadType === "search" && Array.isArray(result.data)) tracks = result.data;
     else if (result.loadType === "playlist" && result.data && Array.isArray(result.data.tracks)) tracks = result.data.tracks;
 
+    res.setHeader("Cache-Control", "public, max-age=0, s-maxage=60, stale-while-revalidate=120");
     return res.status(200).json({
       loadType: result.loadType || "empty",
       playlistName: result.data && result.data.info && result.data.info.name ? String(result.data.info.name) : null,
@@ -124,3 +142,4 @@ module.exports = async function handler(req, res) {
     return jsonError(res, 502, "Could not reach the Lavalink node. Check its URL, network access, and credentials.");
   }
 };
+
